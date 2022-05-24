@@ -17,15 +17,17 @@ def generate_npy():
         df_city['tavg'] = (df_city['tmax'] + df_city['tmin']) / 2
         df_city['Date'] = pd.to_datetime(df_city['Date'])
         df_city = df_city[['Date', 'tavg']].dropna(axis=0)
-        numy = int(len(df_city) / 365)
-        numTrain = int(numy * 2 / 3)
+        # Place 1 to modify moving window speed
+        numSamples = int((len(df_city) - 730) / 90)
+        numTrain = int(numSamples * 2 / 3)
         city = df_id[df_id['ID'] == city_id].iloc[0]
         coordinate = np.array([city['Lat'], city['Lon']])
         coordinate = coordinate.reshape(1, -1)
         coordinate /= 180
-        for i in range(0, numy - 1, 2):
-            X = (df_city['tavg'].iloc[365 * i:365 * (i + 1)] - 60) / 10
-            Y = (df_city['tavg'].iloc[365 * (i + 1):365 * (i + 2)] - 60) / 10
+        for i in range(0, numSamples):
+            # Place 2 to modify moving window speed
+            X = (df_city['tavg'].iloc[90 * i:90 * i + 365] - 60) / 10
+            Y = (df_city['tavg'].iloc[90 * i + 365:90 * i + 730] - 60) / 10
             X_idx_diff = X.index.to_series().diff()
             Y_idx_diff = Y.index.to_series().diff()
             # skip time period if length of consecutive nan is more than 10 days
